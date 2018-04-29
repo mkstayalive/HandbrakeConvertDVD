@@ -47,6 +47,6 @@ input="$1"
 output="$2"
 
 echo "Searching for DVDs..."
-find "$input" | grep "VIDEO_TS$" | while IFS='' read -r line || [[ -n "$line" ]]; do
+find "$input" | grep "/VIDEO_TS$" | while IFS='' read -r line || [[ -n "$line" ]]; do
     process "$line" "$output/$relPath" "$preset"
 done
