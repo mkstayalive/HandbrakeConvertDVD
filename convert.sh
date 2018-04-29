@@ -16,8 +16,8 @@ process() {
 	local preset="$3"
 	local i=0
 	local name=`echo "$input" | awk -F/ '{print $(NF-1)}'`
-    local outputdir="${output}/${name} [${preset}]"
-    mkdir -p "$outputdir"
+	local outputdir="${output}/${name} [${preset}]"
+	mkdir -p "$outputdir"
 	echo "" > "${outputdir}/convert.sh"
 	echo "Output dir is ${outputdir}"
 	titles=$(HandBrakeCLI -i "$input" -t 0 2>&1 | grep "+ title" | wc -l)
