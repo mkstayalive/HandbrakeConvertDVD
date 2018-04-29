@@ -15,3 +15,9 @@ brew install coreutils
 ```
 
 The script takes an optional 3rd parameter `preset`. The values of official Handbrake presets can be found [here](https://handbrake.fr/docs/en/latest/technical/official-presets.html). The default value is "Normal".
+
+To throttle the CPU to a certain limit while the conversion is running, run the throttle script in a separate window of your terminal
+
+```
+sudo ./throttle.sh 200
+```
