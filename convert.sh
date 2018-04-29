@@ -22,8 +22,8 @@ process() {
     titles=$(HandBrakeCLI -i "$inputDir" -t 0 2>&1 | grep "+ title" | wc -l)
     for i in $(seq 1 $titles)
     do
-        local outputFile=$(printf "${outputDir}/Track %02d - ${name}.mp4" $i)
-        local outputLockFile=$(printf "${outputDir}/.Track %02d - ${name}.mp4.lock" $i)
+        local outputFile=$(printf "${outputDir}/${name} - Track %02d.mp4" $i)
+        local outputLockFile=$(printf "${outputDir}/.${name} - Track %02d.mp4.lock" $i)
         if [ -f "$outputFile" ] && [ ! -f "$outputLockFile" ]; then
             echo "Skipping: $outputFile"
             continue
