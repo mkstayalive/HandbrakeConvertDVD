@@ -11,41 +11,50 @@ trim() {
 }
 
 process() {
-    local input="$1"
-    local output="$2"
+    local inputDir="$1"
+    local outputDir="$2"
     local preset="$3"
     local i=0
-    local name=`echo "$input" | awk -F/ '{print $(NF-1)}'`
-    local outputdir="${output}/${name} [${preset}]"
-    mkdir -p "$outputdir"
-    echo "" > "${outputdir}/convert.sh"
-    echo "Output dir is ${outputdir}"
-    titles=$(HandBrakeCLI -i "$input" -t 0 2>&1 | grep "+ title" | wc -l)
+    relPath=$(realpath --relative-to="$input" "$inputDir/..")
+    local outputDir="${output}/${relPath}"
+    mkdir -p "$outputDir"
+    echo "Output dir is ${outputDir}"
+    titles=$(HandBrakeCLI -i "$inputDir" -t 0 2>&1 | grep "+ title" | wc -l)
     for i in $(seq 1 $titles)
     do
-        local outputfile=$(printf "${outputdir}/Track #%02d - ${name}.mp4" $i)
-        if [ -f "$outputfile" ]; then
-            echo "Skipping: $outputfile"
+        local outputFile=$(printf "${outputDir}/Track #%02d - ${name}.mp4" $i)
+        local outputLockFile=$(printf "${outputDir}/.Track #%02d - ${name}.mp4.lock" $i)
+        if [ -f "$outputFile" ] && [ ! -f "$outputLockFile" ]; then
+            echo "Skipping: $outputFile"
             continue
         fi
-        echo "Converting (). Writing into ${outputfile}.."
-        local cmd="HandBrakeCLI --input '$input' --title $i --preset '$preset' --output '$outputfile'"
-        echo "Running:"
-        echo $cmd
-        echo $cmd >> "${outputdir}/convert.sh"
-        eval $cmd
-        PID=$!
+        echo "Converting title $i. Writing into: ${outputFile}"
+        local cmd="HandBrakeCLI --input '$inputDir' --title $i --preset '$preset' --output '$outputFile' 2>/dev/null"
+        echo $cmd >> "$outputLockFile"
+        eval "$cmd"
         if [ -x "$(command -v cputhrottle)" ]; then
             # Mac OSX limit CPU usage
-            cputhrottle $PID $CPU_LIMIT &
+            local pid=$(pgrep HandBrakeCLI)
+            if [ ! -z $pid ]; then
+                cputhrottle $pid $CPU_LIMIT &
+            fi
         fi
+        rm "$outputLockFile"
     done
 }
 
-if [ -z "$3" ] ; then
-    echo "Usage: ./convert.sh /path/to/input /path/to/output preset"
+preset="${3:-$DEFAULT_PRESET}"
+
+if [ -z "$2" ] ; then
+    echo "Usage: ./convert.sh /path/to/input /path/to/output [preset]"
     exit 1
 fi
 
-process "$1" "$2" "$3"
+input="$1"
+output="$2"
+
+echo "Searching for DVDs..."
+find "$input" | grep "VIDEO_TS$" | while IFS='' read -r line || [[ -n "$line" ]]; do
+    process "$line" "$output/$relPath" "$preset"
+done
 
