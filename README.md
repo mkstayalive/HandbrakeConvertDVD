@@ -1,4 +1,4 @@
-# Handbrake Convert DVD
+# Handbrake Convert DVD to MP4 in bulk
 
 Convert DVDs having multiple titles into separate MP4 files. The script runs recursively for the input directory, searches for DVDs and converts them into output folder, with directory structure preserved
 

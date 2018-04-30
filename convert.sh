@@ -19,7 +19,7 @@ process() {
     local outputDir="${output}/${relPath}"
     mkdir -p "$outputDir"
     echo "Output dir is ${outputDir}"
-    titles=$(HandBrakeCLI -i "$inputDir" -t 0 2>&1 | grep "+ title" | wc -l)
+    titles=$(trim $(HandBrakeCLI -i "$inputDir" -t 0 2>&1 | grep "+ title" | wc -l))
     for i in $(seq 1 $titles)
     do
         local outputFile=$(printf "${outputDir}/${name} - Track %02d.mp4" $i)
@@ -28,8 +28,8 @@ process() {
             echo "Skipping: $outputFile"
             continue
         fi
-        echo "Converting title $i. Writing into: ${outputFile}"
-        local cmd="HandBrakeCLI --input '$inputDir' --title $i --preset '$preset' --output '$outputFile' 2>/dev/null"
+        echo "Converting title $i of $titles. Writing into: ${outputFile}"
+        local cmd="HandBrakeCLI --input '$inputDir' --title $i --preset '$preset' --output '$outputFile' </dev/null 2>/dev/null"
         echo $cmd >> "$outputLockFile"
         eval "$cmd"
         rm "$outputLockFile"
@@ -43,10 +43,15 @@ if [ -z "$2" ] ; then
     exit 1
 fi
 
-input="$1"
-output="$2"
+input=$(trim "$1")
+output=$(trim "$2")
 
 echo "Searching for DVDs..."
-find "$input" | grep "/VIDEO_TS$" | while IFS='' read -r line || [[ -n "$line" ]]; do
+find "$input" | grep "/VIDEO_TS$" > /tmp/dvds.txt
+total=$(trim $(wc -l /tmp/dvds.txt))
+counter=1
+while IFS='' read -r line || [[ -n "$line" ]]; do
+    echo "Processing $counter of $total: $line"
     process "$line" "$output" "$preset"
-done
+    counter=$((counter+1))
+done < /tmp/dvds.txt
