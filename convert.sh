@@ -28,7 +28,8 @@ process() {
             echo "Skipping: $outputFile"
             continue
         fi
-        echo "Converting title $i of $titles. Writing into: ${outputFile}"
+        echo "Converting title $i of $titles. Start time: $(date)"
+        echo "Writing into: ${outputFile}"
         local cmd="HandBrakeCLI --input '$inputDir' --title $i --preset '$preset' --output '$outputFile' </dev/null 2>/dev/null"
         echo $cmd >> "$outputLockFile"
         eval "$cmd"
@@ -47,11 +48,13 @@ input=$(trim "$1")
 output=$(trim "$2")
 
 echo "Searching for DVDs..."
-find "$input" | grep "/VIDEO_TS$" > /tmp/dvds.txt
-total=$(trim $(wc -l /tmp/dvds.txt))
-counter=1
-while IFS='' read -r line || [[ -n "$line" ]]; do
-    echo "Processing $counter of $total: $line"
+tmpFile="/tmp/dvds.txt"
+find "$input" | grep "/VIDEO_TS$" > $tmpFile
+total=$(wc /tmp/dvds.txt | awk {'print $1'})
+echo "Found $total DVDs"
+for ((i=1; i<=total; i++))
+do
+    line="$(tail -n+$i /tmp/dvds.txt | head -1)"
+    echo "#### Processing $i of $total: $line ####"
     process "$line" "$output" "$preset"
-    counter=$((counter+1))
-done < /tmp/dvds.txt
+done
