@@ -50,11 +50,11 @@ output=$(trim "$2")
 echo "Searching for DVDs..."
 tmpFile="/tmp/dvds.txt"
 find "$input" | grep "/VIDEO_TS$" > $tmpFile
-total=$(wc /tmp/dvds.txt | awk {'print $1'})
+total=$(wc "$tmpFile" | awk {'print $1'})
 echo "Found $total DVDs"
 for ((i=1; i<=total; i++))
 do
-    line="$(tail -n+$i /tmp/dvds.txt | head -1)"
+    line="$(tail -n+$i "$tmpFile" | head -1)"
     echo "#### Processing $i of $total: $line ####"
     process "$line" "$output" "$preset"
 done
