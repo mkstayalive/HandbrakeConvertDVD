@@ -23,3 +23,5 @@ To throttle the CPU to a certain limit while the conversion is running, run the 
 ```
 sudo ./throttle.sh 200
 ```
+
+![alt text](https://raw.githubusercontent.com/mkstayalive/HandbrakeConvertDVD/master/img/screenshot.jpg)
