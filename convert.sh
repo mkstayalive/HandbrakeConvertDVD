@@ -46,15 +46,17 @@ fi
 
 input=$(trim "$1")
 output=$(trim "$2")
+startFrom="${4:-1}"
 
 echo "Searching for DVDs..."
 tmpFile="/tmp/dvds.txt"
 find "$input" | grep "/VIDEO_TS$" > $tmpFile
 total=$(wc "$tmpFile" | awk {'print $1'})
 echo "Found $total DVDs"
-for ((i=1; i<=total; i++))
+for ((i=startFrom; i<=total; i++))
 do
     line="$(tail -n+$i "$tmpFile" | head -1)"
     echo "#### Processing $i of $total: $line ####"
     process "$line" "$output" "$preset"
 done
+echo "Completed"
